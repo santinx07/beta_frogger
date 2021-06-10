@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>frogger</title>
+
+    <link rel="stylesheet" href="assets/css/main.css">
+
+    <script src="assets/js/classes/class.Entity.js"></script>
+    <script src="assets/js/classes/class.Tile.js"></script>
+    <script src="assets/js/classes/class.Frog.js"></script>
+    <script src="assets/js/classes/class.Car.js"></script>
+    <script src="assets/js/maps/map.js"></script>
+    <script src="assets/js/classes/class.Log.js"></script>
+    <script src="assets/js/classes/class.Log.js"></script>
+
+</head>
+<body>
+    <img id="logo" src="assets/images/frogger-logo.png" alt="">
+    <canvas id="game_canvas" style="outline:1px solid black;" width="400" height="400"></canvas>
+
+    <script>
+        let matrix = []
+        let tile_count = map.length
+        let canvas = document.getElementById("game_canvas")
+        let ctx = canvas.getContext("2d")
+        let player;
+        let game_loop_var;
+
+
+        let heart = new Image()
+        heart.src = "assets/images/heart.png"
+
+
+        let frog_array = [];
+        let car_array = [];
+        let log_array = [];
+
+        startGame()
+
+        function startGame(){
+            var name = prompt("Enter name")
+            let tilesize = canvas.width/tile_count
+
+            // Ponemos el jugador en el centro del mapa.
+            let player_x = Math.floor(tile_count/2)
+
+            //Creamos la instancia del FROG
+            player = new Frog(player_x, tile_count-1, tilesize, tilesize, {}, name )
+
+            //ponemos car en su posision
+            //let car_y = Math.floor(tile_count/7)
+            car_array = [];
+            log_array = [];
+            frog_array = [];
+
+
+
+
+
+            //creamos car
+            car_array.push( new Car(1, 8, tilesize, tilesize, "left"))
+            car_array.push( new Car(7, 8, tilesize, tilesize, "left"))
+            car_array.push( new Car(3, 10, tilesize, tilesize))
+            car_array.push( new Car(-3, 11, tilesize, tilesize))
+            car_array.push( new Car(-3, 7, tilesize, tilesize, "left"))
+
+            // creamos log
+            log_array.push( new Log(1, 1, tilesize, tilesize, "left", 0.03))
+            log_array.push( new Log(1, 2, tilesize, tilesize, "right", 0.04))
+            log_array.push( new Log(1, 4, tilesize, tilesize, "right", 0.03))
+            log_array.push( new Log(1, 3, tilesize, tilesize, "left", 0.08))
+            log_array.push( new Log(1, 4, tilesize, tilesize, "right", 0.03))
+            log_array.push( new Log(1, 2, tilesize, tilesize, "right", 0.04))
+            log_array.push( new Log(1, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(3, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(7, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(2, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(5, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(4, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(1, 1, tilesize, tilesize, "left", 0.03))
+            log_array.push( new Log(1, 2, tilesize, tilesize, "right", 0.04))
+            log_array.push( new Log(1, 4, tilesize, tilesize, "right", 0.03))
+            log_array.push( new Log(1, 3, tilesize, tilesize, "left", 0.08))
+            log_array.push( new Log(1, 4, tilesize, tilesize, "right", 0.03))
+            log_array.push( new Log(1, 2, tilesize, tilesize, "right", 0.04))
+            log_array.push( new Log(1, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(3, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(7, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(2, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(5, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(4, 5, tilesize, tilesize, "left", 0.04))
+            log_array.push( new Log(1, 1, tilesize, tilesize, "left", 0.03))
+            log_array.push( new Log(1, 1, tilesize, tilesize, "left", 0.03))
+            log_array.push( new Log(1, 1, tilesize, tilesize, "left", 0.03))
+
+
+            for (let y = 0; y < tile_count; y++) {
+                matrix.push([])
+                for (let x = 0; x < tile_count; x++) {
+                    matrix[y].push(new Tile(x, y, tilesize, tilesize, map[y][x]))
+                }
+            }
+            // aqui estan los fps del juego
+            game_loop_var = setInterval(function(){
+                gameLoop()
+            }, 1000/3)
+
+        }
+
+
+
+
+
+
+        // Esta es la funcion de game loop, 1000/15
+        function gameLoop(){
+            update(tile_count)
+            render()
+        }
+
+
+
+
+
+
+
+
+        //funcion que se encarga de actualizar el juego
+        function update(tile_count){
+
+          //actualizando los carros
+          for (var i = 0; i < car_array.length; i++) {
+            car_array[i].__updateCar(tile_count, player)
+          }
+
+          //actualizando los troncos
+          for (var i = 0; i < log_array.length; i++) {
+            log_array[i].__updateLog(tile_count, player)
+          }
+
+          //actualizando el jugador
+          player.__updatePlayer(map, game_loop_var, log_array, frog_array)
+
+        }
+
+
+
+
+
+
+        // Esta funcion renderiza
+        function render(){
+
+
+            ctx.save()
+            ctx.clearRect(0,0, canvas.width, canvas.height)
+
+
+            //renderizar el mapa
+            for (let y = 0; y < tile_count ; y++) {
+                for (let x = 0; x < tile_count; x++) {
+                    matrix[y][x].__render(ctx)
+                }
+            }
+
+            //Renderizamos los carros
+            for (var i = 0; i < car_array.length; i++) {
+              car_array[i].__render(ctx)
+            }
+
+
+            // Renderizamos los troncos
+            for (var i = 0; i < log_array.length; i++){
+              log_array[i].__render(ctx)
+            }
+
+
+            // Renderizamos el frog array de las veces que hemos llegado al final
+            for (var i = 0; i < frog_array.length; i++){
+              frog_array[i].__render(ctx)
+            }
+
+            //renderizamos el jugador
+            player.__render(ctx)
+
+
+            let heartX = 5
+            let heartY = canvas.height - 20
+            for (var i = 0; i < player.lives; i++) {
+              ctx.drawImage(heart, heartX, heartY, 15, 15)
+              heartX += 15
+            }
+
+
+
+            ctx.restore()
+        }
+
+
+
+
+
+        let pressed = false
+        let key_pressed = null
+
+        document.onkeyup = function(e){
+          if(e.key == key_pressed){
+            pressed = false
+          }
+        }
+
+        // controles para el jugador
+        document.onkeydown = function (e){
+            let currentX = player.x
+            let currentY = player.y
+
+            if (e.key == "a"  && ( currentX-1 >= 0 )  && !pressed) {
+                player.x--
+                pressed = true
+                key_pressed = e.key
+            }
+
+            if (e.key == "w" && ( currentY-1 >= 0) && !pressed) {
+
+                player.y--
+                pressed = true
+                key_pressed = e.key
+            }
+
+            if (e.key == "s" && ( currentY+1 < tile_count ) && !pressed) {
+
+                player.y++
+                pressed = true
+                key_pressed = e.key
+            }
+
+            if (e.key == "d" && ( currentX+1 < tile_count ) && !pressed) {
+
+                player.x++
+                pressed = true
+                key_pressed = e.key
+            }
+        }
+
+
+
+
+
+    </script>
+</body>
+</html>
